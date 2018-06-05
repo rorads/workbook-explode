@@ -1,0 +1,10 @@
+Given a single workbook:
+
+  for each tab:
+    validate
+    explode
+    record if edits have been made
+
+  publish log in hashCommented tab
+
+    
