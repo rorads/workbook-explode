@@ -1,10 +1,11 @@
 import pandas as pd
 import re
 
-workbook_filepath = 'data/wildcard-multiple-with-nullifiers.xlsx'
+######################################
+# Test is at the bottom of this file #
+######################################
 
-
-def process_workbook(input_filepath, output_filepath):
+def process_workbook(input_filepath, output_filepath="data/output.xlsx"):
     """
     Given a .xlsx workbook which is valid for conversion via CoVE, this method
     will recognise special columns to asign constant values for elements, or
@@ -21,6 +22,8 @@ def process_workbook(input_filepath, output_filepath):
 
     """
 
+    writer = pd.ExcelWriter(output_filepath)
+
     # return a dict with keys = tab names, values = tab dataframes
     workbook_dict = setup_workbook(input_filepath)
 
@@ -33,7 +36,14 @@ def process_workbook(input_filepath, output_filepath):
     # parse all columns and explode the constants vertically
     exploded_vertical = explode_vertical(exploded_horizontal)
 
-    # write_to_file(exploded_vertical)
+    write_to_file(exploded_vertical, writer)
+
+
+def write_to_file(workbook_dictionary, writer):
+
+    for name, cells_df in workbook_dictionary.items():
+        cells_df.to_excel(writer, name, index=False)
+    writer.save()
 
 
 def setup_workbook(input_filepath):
@@ -59,7 +69,8 @@ def setup_workbook(input_filepath):
 def validate_workbook(workbook_dictionary):
     """
     Takes a workbook dictionary and validates the non-commented tabs to check
-    that each one is compatible with the pre-processor
+    that each one is compatible with the pre-processor i.e. verticle explosion
+    commands must be comma seperable
 
     Args:
         workbook_dictionary (dict): a dictionary of workbook represented in
@@ -69,10 +80,12 @@ def validate_workbook(workbook_dictionary):
         bool: True if successful, otherwise an exception is thrown.
     """
 
-    # TODO: add conditions which break the pre-processor
+    # TODO: add conditions which break the pre-processor and make this exception throwing
 
     # If there are duplicate columns which aren't wildcards If there are columns ending in ".\d+" - this will break
     # the suffix clipping which happens in the horizontal explosion.
+
+    return True
 
 
 def explode_horizontal(workbook_dictionary):
@@ -129,8 +142,8 @@ def explode_horizontal(workbook_dictionary):
 
                     sheet_frame.drop(column, axis=1, inplace=True)
 
-                # if it's not a wildcard, check if it matches any previous wildcards and if so, explode their value
-                # out into this column's signature
+                # if it's not a wildcard, check if it matches any previous wildcards
+                # and if so, explode their value out into this column's signature
                 else:
                     for wildcard, value in wildcards.items():
 
@@ -145,17 +158,7 @@ def explode_horizontal(workbook_dictionary):
                             # it does, throw an error and explain that there's
                             # a dupliation.
 
-    writer = pd.ExcelWriter('data/output.xlsx')
-    for name, cells_df in workbook_dictionary.items():
-        cells_df.to_excel(writer, name, index=False)
-    writer.save()
     return workbook_dictionary
-
-
-explode_horizontal(setup_workbook(workbook_filepath))
-
-pd.read_excel(workbook_filepath)
-
 
 def explode_vertical(workbook_dictionary):
     """
@@ -179,3 +182,10 @@ def explode_vertical(workbook_dictionary):
 
     # group 1 = pre square brackets slug, group 2 = comma separated K:V pairs
     constants_pattern = re.compile(r"([^\[]*)\[([^\]]*)\]")
+
+    # TODO: this method needs filling out. Currently it just returns the workbook.
+
+    return workbook_dictionary
+
+# TESTING
+process_workbook('data/wildcard-multiple-with-nullifiers.xlsx', 'data/output.xlsx')
