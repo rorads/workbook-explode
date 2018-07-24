@@ -168,9 +168,6 @@ def explode_vertical(workbook_dictionary):
     column, a new column is created for each value (there can be multiple
     separated by comma), applied to the parent element.
 
-    TODO: the use of a 'null' value to 'switch off' the wildcard will need to be
-    incorporated
-
     Args:
         workbook_dictionary (dict): a dictionary of workbook represented in
         pandas data frames
