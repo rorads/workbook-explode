@@ -183,9 +183,43 @@ def explode_vertical(workbook_dictionary):
     # group 1 = pre square brackets slug, group 2 = comma separated K:V pairs
     constants_pattern = re.compile(r"([^\[]*)\[([^\]]*)\]")
 
-    # TODO: this method needs filling out. Currently it just returns the workbook.
+    for sheet_name, sheet_frame in workbook_dictionary.items():
+
+        constant_dict = {}
+
+        # ignore commented sheets
+        if sheet_name.startswith("#"):
+            continue
+        else:
+            for column in sheet_frame:
+
+                # if it's got constants in it, then explode it
+                match = constants_pattern.search(str(column))
+
+                if match:
+
+                    # Separate comma separated args into a dictionary of k:v pairs
+                    arg_dict = dict(re.findall(r'(\S+):(".*?"|\S+)', match.group(2)))
+
+                    # for each k:v pair, add a column which is the original column
+                    # minus everything after the last "/", plus the key. All of the
+                    # values in that column will be set to v
+
+                    for key, value in arg_dict.items():
+
+                        # turns "element/subelement/0/value" into element/subelement/0/,
+                        # then adds the key after it
+                        initial_new_heading_slug = re.search(r'(.*?)[^/]+\Z',match.group(1)).group(1)
+                        new_column_heading = initial_new_heading_slug + key
+                        constant_dict[new_column_heading] = value
+
+                    sheet_frame.rename(columns={str(column): match.group(1)}, inplace=True)
+
+            # inserts the value for all rows
+            for new_col, new_val in constant_dict.items():
+                sheet_frame[new_col] = [new_val] * len(sheet_frame)
 
     return workbook_dictionary
 
 # TESTING
-process_workbook('data/wildcard-multiple-with-nullifiers.xlsx', 'data/output.xlsx')
+process_workbook('data/constant-multiple-simple.xlsx', 'data/output.xlsx')
