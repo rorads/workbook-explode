@@ -210,6 +210,7 @@ def explode_vertical(workbook_dictionary):
                         new_column_heading = initial_new_heading_slug + key
                         constant_dict[new_column_heading] = value
 
+                    # remove the argument string from the original column
                     sheet_frame.rename(columns={str(column): match.group(1)}, inplace=True)
 
             # inserts the value for all rows
